@@ -8,21 +8,21 @@ namespace ShopifyIntegration.Controllers
     [ApiController]
     public class WebhookController : ControllerBase
     {
-        [HttpGet]
-        public async Task<IActionResult> CreateWebhook()
+        [HttpPost]
+        public async Task<IActionResult> CreateWebhook(Webhook hook)
         {
             try
             {
                 var webhookService = new WebhookService(ConstantStrings.StoreUrl, ConstantStrings.ShopifyAccessToken);
-                Webhook hook = new Webhook()
-                {
-                    Address = "https://my.webhook.url.com/path",
-                    CreatedAt = DateTime.Now,
-                    Fields = new List<string>() { "field1", "field2" },
-                    Format = "json",
-                    MetafieldNamespaces = new List<string>() { "metafield1", "metafield2" },
-                    Topic = "app/uninstalled",
-                };
+                //Webhook hook = new Webhook()
+                //{
+                //    Address = "https://my.webhook.url.com/path",
+                //    CreatedAt = DateTime.Now,
+                //    Fields = new List<string>() { "field1", "field2" },
+                //    Format = "json",
+                //    MetafieldNamespaces = new List<string>() { "metafield1", "metafield2" },
+                //    Topic = "app/uninstalled",
+                //};
 
                 hook = await webhookService.CreateAsync(hook);
 
@@ -54,14 +54,14 @@ namespace ShopifyIntegration.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateWebhook(long webhookId)
+        public async Task<IActionResult> UpdateWebhook(long webhookId,string address)
         {
             try
             {
                 var webhookService = new WebhookService(ConstantStrings.StoreUrl, ConstantStrings.ShopifyAccessToken);
                 var webhook = await webhookService.UpdateAsync(webhookId, new Webhook()
                 {
-                    Address = "https://my.webhook.url.com/new/path"
+                    Address = address
                 });
                 return Ok(webhook);
             }
@@ -69,6 +69,23 @@ namespace ShopifyIntegration.Controllers
             {
 
                 throw ex;
+            }
+            return Ok(null);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> NotificationOrderCreated(Order orderModel)
+        {
+            try
+            {
+                var orderService = new OrderService(ConstantStrings.StoreUrl, ConstantStrings.ShopifyAccessToken);
+                var order = await orderService.GetAsync(orderModel.Id.Value);
+                return Ok(order);
+            }
+            catch (Exception ex)
+            {
+
+                throw;
             }
             return Ok(null);
         }
