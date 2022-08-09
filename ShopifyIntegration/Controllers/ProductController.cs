@@ -30,6 +30,40 @@ namespace ShopifyIntegration.Controllers
             return Ok(null);
         }
 
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllProductByTags(string tags)
+        {
+            try
+            {
+                var allTags = tags.Split(",").ToArray().ToList();
+                var productService = new ProductService(ConstantStrings.StoreUrl, ConstantStrings.ShopifyAccessToken);
+                var productList = await productService.ListAsync();
+                Dictionary<string, long> uniqueProductIds = new Dictionary<string, long>();
+                if (productList.Items.Count() != 0)
+                {
+                    foreach (var item in allTags)
+                    {
+                        foreach (var item2 in productList.Items.Where(x => x.Tags.ToLower().Contains(item.ToLower())).Select(x => x.Id).ToList())
+                        {
+                            uniqueProductIds.TryAdd("ProductId",item2.Value);
+                        }
+                    }
+                    var aa = uniqueProductIds.Values.ToList();
+                    var test = productList.Items.Where(x=> aa.Contains(x.Id.Value)).ToList();
+                    return Ok(test);
+                }
+
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            return Ok(null);
+        }
+
         [HttpGet]
         public async Task<IActionResult> GetProductByProductId(long productId)
         {
@@ -66,7 +100,7 @@ namespace ShopifyIntegration.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> UpdateInventoryQuantityByProductId(long variantId, int quantity)
+        public async Task<IActionResult> UpdateInventoryQuantityByVariantId(long variantId, int quantity)
         {
             try
             {
@@ -95,6 +129,28 @@ namespace ShopifyIntegration.Controllers
                 //    Id = variantId,
                 //    InventoryQuantity = quantity
                 //});
+                return Ok("Success");
+            }
+            catch (Exception ex)
+            {
+
+                throw;
+            }
+            return Ok(null);
+        }
+
+
+        [HttpGet]
+        public async Task<IActionResult> UpdateProductPriceByVariantId(long variantId, decimal? newPrice)
+        {
+            try
+            {
+                var productVariantService = new ProductVariantService(ConstantStrings.StoreUrl, ConstantStrings.ShopifyAccessToken);
+                var variant = await productVariantService.UpdateAsync(variantId, new ProductVariant()
+                {
+                    Price = newPrice
+                });
+
                 return Ok("Success");
             }
             catch (Exception ex)
